@@ -11,7 +11,7 @@
     "dev:shell": "docker compose exec openclaw bash"
   },
   "dependencies": {
-    "@chrysb/alphaclaw": "github:iamsteveng/alphaclaw#30015c7fe139d3a1cc1de5a73ddc67304c5d4d5a"
+    "@chrysb/alphaclaw": "github:iamsteveng/alphaclaw#9faa9072e5de89e02b07a2e2268c82b10c29fc5d"
   },
   "engines": {
     "node": ">=22.14.0"
