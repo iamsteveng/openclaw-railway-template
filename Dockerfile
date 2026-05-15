@@ -1,10 +1,10 @@
 FROM node:22-slim
 
-RUN apt-get update && apt-get install -y git curl procps python3 make g++ cron tini unzip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl procps python3 make g++ cron tini && rm -rf /var/lib/apt/lists/*
 
-# Install Bun (required by gbrain — Node.js not supported as primary runtime)
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:$PATH"
+# Install Bun via official image (pinned, avoids curl|bash supply-chain risk)
+COPY --from=oven/bun:1.3.14 /usr/local/bin/bun /usr/local/bin/bun
+ENV BUN_INSTALL=/usr/local
 
 WORKDIR /app
 
@@ -15,12 +15,13 @@ RUN npm install -g @anthropic-ai/claude-code@2.1.133 \
  && claude --version
 ENV CLAUDE_CONFIG_DIR=/data/.claude
 
-ENV PATH="/app/node_modules/.bin:/root/.bun/bin:$PATH"
+ENV PATH="/app/node_modules/.bin:$PATH"
 ENV ALPHACLAW_ROOT_DIR=/data
 
-# Clone and link gbrain — binary baked into image, brain data goes to /data/gbrain at runtime
+# Clone and link gbrain — pinned to commit SHA for reproducible builds
 RUN git clone https://github.com/garrytan/gbrain.git /app/gbrain \
  && cd /app/gbrain \
+ && git checkout baf1a47798cb145d00bfce4fa94f85a94c8d7e07 \
  && bun install \
  && bun link
 
