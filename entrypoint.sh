@@ -37,8 +37,22 @@ if (!cfg.mcpServers.gbrain) {
 
 echo "[gbrain] Ready."
 
-# Register x-list-ingest cron job (idempotent — skipped if already registered or X_INGEST_LIST_ID unset)
+# Start alphaclaw in background so we can register crons after the Gateway is up
+alphaclaw start &
+ALPHACLAW_PID=$!
+
+# Forward signals to alphaclaw
+trap "kill $ALPHACLAW_PID 2>/dev/null" EXIT TERM INT
+
+# Register x-list-ingest cron job once the Gateway is ready
+# (openclaw cron add requires the Gateway — it starts with alphaclaw)
 if [ -n "${X_INGEST_LIST_ID:-}" ]; then
+  echo "[x-list-ingest] Waiting for openclaw gateway..."
+  for i in $(seq 1 30); do
+    openclaw health >/dev/null 2>&1 && break
+    sleep 2
+  done
+
   EXISTING_COUNT=$(openclaw cron list --json 2>/dev/null | jq '[.[] | select(.name=="x-list-ingest")] | length' 2>/dev/null || echo "0")
   if [ "${EXISTING_COUNT:-0}" -gt 0 ]; then
     echo "[x-list-ingest] Cron job already registered, skipping"
@@ -74,11 +88,11 @@ RESULT: ingested=<n>, skipped_existing=<n>, errors=<n>, slugs=<comma-separated l
       openclaw cron edit "$JOB_ID" --enable 2>/dev/null || true
       echo "[x-list-ingest] Registered and enabled: $JOB_ID"
     else
-      echo "[x-list-ingest] Warning: cron registration failed, skipping"
+      echo "[x-list-ingest] Warning: cron registration failed"
     fi
   fi
 else
   echo "[x-list-ingest] X_INGEST_LIST_ID not set, skipping cron registration"
 fi
 
-exec alphaclaw start
+wait $ALPHACLAW_PID
