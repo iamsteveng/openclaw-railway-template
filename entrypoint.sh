@@ -39,7 +39,8 @@ echo "[gbrain] Ready."
 
 # Register x-list-ingest cron job (idempotent — skipped if already registered or X_INGEST_LIST_ID unset)
 if [ -n "${X_INGEST_LIST_ID:-}" ]; then
-  if openclaw cron list --json 2>/dev/null | jq -e '.[] | select(.name=="x-list-ingest")' >/dev/null 2>&1; then
+  EXISTING_COUNT=$(openclaw cron list --json 2>/dev/null | jq '[.[] | select(.name=="x-list-ingest")] | length' 2>/dev/null || echo "0")
+  if [ "${EXISTING_COUNT:-0}" -gt 0 ]; then
     echo "[x-list-ingest] Cron job already registered, skipping"
   else
     echo "[x-list-ingest] Registering cron job for list ${X_INGEST_LIST_ID}..."
