@@ -8,7 +8,12 @@
     "dev:stop": "docker compose down",
     "dev:clean": "docker compose down -v",
     "dev:logs": "docker compose logs -f",
-    "dev:shell": "docker compose exec openclaw bash"
+
+    "dev:restart": "docker compose restart",
+    "dev:shell": "docker compose exec openclaw bash",
+    "dev:seed": "bash scripts/seed.sh",
+    "dev:fresh": "npm run dev:seed && docker compose up --build",
+    "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
     "@chrysb/alphaclaw": "github:iamsteveng/alphaclaw#a57db5c9853a35a752f1597788fd30450b678a09"
