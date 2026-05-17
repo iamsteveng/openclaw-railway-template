@@ -16,7 +16,7 @@
     "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
-    "@chrysb/alphaclaw": "github:iamsteveng/alphaclaw#804088c0263ac78cccdcdfc98a92b1bc268e902b"
+    "@chrysb/alphaclaw": "github:iamsteveng/alphaclaw#c2347d521a1b0e922d39c0d8a153b5cd7ec09997"
   },
   "engines": {
     "node": ">=22.14.0"
