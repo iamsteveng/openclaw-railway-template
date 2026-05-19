@@ -1,7 +1,9 @@
 FROM node:22-slim
 
-RUN apt-get update && apt-get install -y git curl procps python3 make g++ cron tini jq \
-    chromium \
+RUN apt-get update && apt-get install -y git curl procps python3 make g++ cron tini jq && rm -rf /var/lib/apt/lists/*
+
+# Separate layer — Chromium is ~95 MB; keeping it isolated prevents a base-tool change from re-downloading it
+RUN apt-get update && apt-get install -y chromium \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Bun via official image (pinned, avoids curl|bash supply-chain risk)
