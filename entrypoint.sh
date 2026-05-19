@@ -36,4 +36,52 @@ if (!cfg.mcpServers.gbrain) {
 "
 
 echo "[gbrain] Ready."
+
+# Configure OpenClaw browser tool (idempotent — safe to run on every start)
+# Set OPENCLAW_BROWSER_DISABLE=1 to skip browser setup (e.g., emergency incident response)
+if [ "${OPENCLAW_BROWSER_DISABLE:-0}" = "1" ]; then
+  echo "[browser] Disabled via OPENCLAW_BROWSER_DISABLE=1, skipping config"
+else
+  echo "[browser] Configuring OpenClaw browser tool..."
+  node -e "
+const fs = require('fs');
+const file = '/data/.openclaw/openclaw.json';
+let cfg = {};
+try {
+  cfg = JSON.parse(fs.readFileSync(file, 'utf8'));
+} catch (e) {
+  if (e.code !== 'ENOENT') console.warn('[browser] Warning: could not parse openclaw.json:', e.message);
+}
+
+let changed = false;
+
+if (!cfg.browser) { cfg.browser = {}; changed = true; }
+if (cfg.browser.enabled === undefined)   { cfg.browser.enabled = true; changed = true; }
+if (!cfg.browser.executablePath)         { cfg.browser.executablePath = '/usr/bin/chromium'; changed = true; }
+if (cfg.browser.headless === undefined)  { cfg.browser.headless = true; changed = true; }
+if (cfg.browser.noSandbox === undefined) { cfg.browser.noSandbox = true; changed = true; }
+if (!cfg.browser.defaultProfile)        { cfg.browser.defaultProfile = 'openclaw'; changed = true; }
+if (!cfg.browser.profiles)              { cfg.browser.profiles = {}; changed = true; }
+// cdpHost pins CDP listener to loopback — prevents accidental 0.0.0.0 exposure
+// color is required by OpenClaw schema; cdpHost is not a valid key
+if (!cfg.browser.profiles.openclaw)     { cfg.browser.profiles.openclaw = { cdpPort: 18800, color: '#FF4500' }; changed = true; }
+
+cfg.tools = cfg.tools || {};
+cfg.tools.alsoAllow = cfg.tools.alsoAllow || [];
+if (!cfg.tools.alsoAllow.includes('browser')) { cfg.tools.alsoAllow.push('browser'); changed = true; }
+
+// browser.enabled=true activates the bundled browser plugin — no plugins.allow entry needed
+
+if (changed) {
+  fs.mkdirSync('/data/.openclaw', { recursive: true });
+  const tmp = file + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2));
+  fs.renameSync(tmp, file);
+  console.log('[browser] Config written to /data/.openclaw/openclaw.json');
+} else {
+  console.log('[browser] Config already present, skipping');
+}
+"
+fi
+
 exec alphaclaw start

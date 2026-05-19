@@ -1,6 +1,8 @@
 FROM node:22-slim
 
-RUN apt-get update && apt-get install -y git curl procps python3 make g++ cron tini jq && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl procps python3 make g++ cron tini jq \
+    chromium \
+ && rm -rf /var/lib/apt/lists/*
 
 # Install Bun via official image (pinned, avoids curl|bash supply-chain risk)
 COPY --from=oven/bun:1.3.14 /usr/local/bin/bun /usr/local/bin/bun
