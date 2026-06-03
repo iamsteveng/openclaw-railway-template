@@ -84,11 +84,18 @@ if (changed) {
 "
 fi
 
-# Auto-authenticate gh CLI if GITHUB_TOKEN is already set (idempotent)
+# Auto-authenticate gh CLI via GITHUB_TOKEN only if not already authenticated
+# (avoids clobbering a user-OAuth token stored by the dashboard on restart)
 if [ -n "$GITHUB_TOKEN" ]; then
-  echo "$GITHUB_TOKEN" | gh auth login --with-token 2>/dev/null && \
-    echo "[gh] Authenticated via GITHUB_TOKEN" || \
-    echo "[gh] Warning: GITHUB_TOKEN present but gh auth login failed (token may lack required scopes)"
+  if gh auth status --hostname github.com >/dev/null 2>&1; then
+    echo "[gh] Already authenticated, skipping GITHUB_TOKEN login"
+  else
+    if gh auth login --with-token <<< "$GITHUB_TOKEN"; then
+      echo "[gh] Authenticated via GITHUB_TOKEN"
+    else
+      echo "[gh] Warning: GITHUB_TOKEN present but gh auth login failed (token may lack required scopes)"
+    fi
+  fi
 fi
 
 exec alphaclaw start
