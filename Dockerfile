@@ -2,6 +2,17 @@ FROM node:22-slim
 
 RUN apt-get update && apt-get install -y git curl procps python3 make g++ cron tini jq && rm -rf /var/lib/apt/lists/*
 
+# Install gh CLI via official GitHub apt repo (separate layer for cache efficiency)
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] \
+      https://cli.github.com/packages stable main" \
+      | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
+
 # Separate layer — Chromium is ~95 MB; keeping it isolated prevents a base-tool change from re-downloading it
 RUN apt-get update && apt-get install -y chromium \
  && rm -rf /var/lib/apt/lists/*
@@ -30,6 +41,7 @@ RUN git clone https://github.com/garrytan/gbrain.git /app/gbrain \
  && bun link
 
 ENV GBRAIN_DATA_DIR=/data/gbrain
+ENV GH_CONFIG_DIR=/data/.config/gh
 
 RUN mkdir -p /data
 
