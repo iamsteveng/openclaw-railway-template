@@ -84,6 +84,9 @@ if (changed) {
 "
 fi
 
+# Ensure gh config dir exists on the persistent volume before any gh commands
+mkdir -p "${GH_CONFIG_DIR:-/data/.config/gh}"
+
 # Auto-authenticate gh CLI via GITHUB_TOKEN only if not already authenticated
 # (avoids clobbering a user-OAuth token stored by the dashboard on restart)
 if [ -n "$GITHUB_TOKEN" ]; then
