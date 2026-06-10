@@ -36,7 +36,7 @@ ENV ALPHACLAW_ROOT_DIR=/data
 # Clone and link gbrain — pinned to commit SHA for reproducible builds
 RUN git clone https://github.com/garrytan/gbrain.git /app/gbrain \
  && cd /app/gbrain \
- && git checkout baf1a47798cb145d00bfce4fa94f85a94c8d7e07 \
+ && git checkout 03ffc6ebdbc7dd8b29e5bfd0c3a9a6c983b54f01 \
  && bun install \
  && bun link
 

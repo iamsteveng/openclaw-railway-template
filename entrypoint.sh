@@ -35,6 +35,9 @@ if (!cfg.mcpServers.gbrain) {
 }
 "
 
+echo "[gbrain] Running schema migrations..."
+gbrain apply-migrations --yes --non-interactive 2>&1 || echo "[gbrain] apply-migrations warning (may be no-op on fresh volume)"
+
 echo "[gbrain] Ready."
 
 # Configure OpenClaw browser tool (idempotent — safe to run on every start)
